@@ -1,4 +1,4 @@
-package newtest;/*
+package servermessagetest;/*
  * From:
  * http://www.dreamincode.net/forums/topic/259777-a-simple-chat-program-with-clientserver-gui-optional/
  */
@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.Date;
 
 /*
- * The server that can be run both as a console application
+ * The server that can be run as a console application
  */
 public class ServerMessageServer {
     // a unique ID for each connection

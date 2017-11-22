@@ -1,4 +1,4 @@
-package newtest;
+package servermessagetest;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
