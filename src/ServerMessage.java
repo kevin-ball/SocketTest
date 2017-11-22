@@ -1,9 +1,9 @@
-
+import java.io.Serializable;
 
 /**
  * Quick and dirty plaveholder for the server message
  */
-public class ServerMessage {
+public class ServerMessage implements Serializable {
 
     protected ServerMessageType type;
     protected int src;

@@ -1,12 +1,12 @@
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
 
 public class ObjectServer extends Thread {
     private ServerSocket serverSocket;
+    ObjectOutputStream out;
+    ObjectInputStream in;
 
     public ObjectServer(int port) throws IOException {
         serverSocket = new ServerSocket(port);
@@ -14,26 +14,35 @@ public class ObjectServer extends Thread {
     }
 
     public void run() {
-        while(true) {
+        System.out.println("Server Waiting for client on port " + serverSocket.getLocalPort() + "...");
+        Socket server = null;
+        try {
+            server = serverSocket.accept();
+            out = new ObjectOutputStream(server.getOutputStream());
+            in = new ObjectInputStream(server.getInputStream());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        System.out.println("Server Just connected to " + server.getRemoteSocketAddress());
+
+        boolean stop = false;
+        while(!stop) {
             try {
-                System.out.println("Server Waiting for client on port " +
-                        serverSocket.getLocalPort() + "...");
-                Socket server = serverSocket.accept();
+                //out = new ObjectOutputStream(server.getOutputStream());
+                //in = new ObjectInputStream(server.getInputStream());
+                ServerMessage msg = (ServerMessage) in.readObject();
+                System.out.println("Server received: " + msg);
 
-                System.out.println("Server Just connected to " + server.getRemoteSocketAddress());
-                DataInputStream in = new DataInputStream(server.getInputStream());
-
-                System.out.println("Server received: " + in.readUTF());
-                DataOutputStream out = new DataOutputStream(server.getOutputStream());
-                out.writeUTF("Thank you for connecting to " + server.getLocalSocketAddress());
-                //server.close();
-
-            } catch (SocketTimeoutException s) {
-                System.out.println("Socket timed out!");
-                break;
+                ServerMessage msgBack = new ServerMessage(ServerMessageType.StatusPrint,"Back at you!");
+                out.writeObject(msgBack);
+                out.flush();
+                System.out.println("Sent obj:" + msgBack);
             } catch (IOException e) {
                 e.printStackTrace();
-                break;
+                stop = true;
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+                stop = true;
             }
         }
     }

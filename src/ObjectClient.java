@@ -6,6 +6,8 @@ public class ObjectClient {
     private Socket clientSocket;
     private String serverName;
     private int port;
+    ObjectInputStream in = null;
+    ObjectOutputStream out = null;
 
     public ObjectClient(String serverName, int port) {
         this.serverName = serverName;
@@ -21,6 +23,8 @@ public class ObjectClient {
             System.out.println("Connecting to " + serverName + " on port " + port);
             clientSocket = new Socket(serverName, port);
             System.out.println("Just connected to " + clientSocket.getRemoteSocketAddress());
+            in = new ObjectInputStream(new BufferedInputStream(clientSocket.getInputStream()));
+            out = new ObjectOutputStream(new BufferedOutputStream(clientSocket.getOutputStream()));
             successful = true;
         } catch (IOException e) {
             e.printStackTrace();
@@ -31,29 +35,29 @@ public class ObjectClient {
         return connect(serverName,port);
     }
 
-    public void sendMessage(String message) {
+    public void sendMessage(ServerMessage message) {
         try {
-            OutputStream outToServer = clientSocket.getOutputStream();
-            DataOutputStream out = new DataOutputStream(outToServer);
-            out.writeUTF(message);
-            //out.writeUTF("Hello from " + clientSocket.getLocalSocketAddress());
+            out.writeObject(message);
+            out.flush();
+            System.out.println("Sent obj:" + message);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    public String receiveMessage() {
-        InputStream isFromServer;
-        DataInputStream disFromServer = null;
-        String message = "";
+    public ServerMessage receiveMessage() {
+        ServerMessage msg = null;
         try {
-            isFromServer = clientSocket.getInputStream();
-            disFromServer = new DataInputStream(isFromServer);
-            message = disFromServer.readUTF();
+            //ObjectOutputStream out = new ObjectOutputStream(clientSocket.getOutputStream());
+            //ObjectInputStream in = new ObjectInputStream(new BufferedInputStream(clientSocket.getInputStream()));
+            msg = (ServerMessage) in.readObject();
+            System.out.println("Server received: " + msg);
         } catch (IOException e) {
             e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
         }
-        return message;
+        return msg;
     }
 
     public void disconnect() {
@@ -99,23 +103,26 @@ public class ObjectClient {
         boolean connected = client.connect(serverName, port);
 
         if (connected) {
-            String msg;
-            String rcvd;
-            msg = "Hello from " + client.getClientSocket().getLocalSocketAddress();
+            ServerMessage msg = new ServerMessage(ServerMessageType.StatusPrint,"Hello from " + client.getClientSocket().getLocalSocketAddress());
+            ServerMessage rcvd;
             System.out.println("Client sending: " + msg);
             client.sendMessage(msg);
             rcvd = client.receiveMessage();
             System.out.println("Server says: " + rcvd);
+
             try {
                 Thread.sleep(10000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            msg = "Hello again ";
+            /*
+            msg = new ServerMessage(ServerMessageType.StatusPrint,"Hello Again");
             System.out.println("Client sending: " + msg);
             client.sendMessage(msg);
             rcvd = client.receiveMessage();
             System.out.println("Server says: " + rcvd);
+            */
+
             client.disconnect();
         }
     }
