@@ -1,3 +1,5 @@
+package simplemessageserver;
+
 import java.io.Serializable;
 
 /**

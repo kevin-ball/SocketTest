@@ -1,4 +1,4 @@
-
+package simplemessageserver;
 
 public enum ServerMessageType {
     RequestNewGame,
